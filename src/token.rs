@@ -2,6 +2,7 @@ use regex::Regex;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Type {
+	Illegal,
 	Number,
 	Function,
 	Bracket,
@@ -24,7 +25,7 @@ pub struct Token {
 }
 
 impl Token {
-	pub fn find(expression: &String) -> Option<Token> {
+	pub fn find(expression: &String) -> Token {
 		for rule in RULES.iter() {
 			let regex = Regex::new(rule.1).unwrap();
 
@@ -43,14 +44,28 @@ impl Token {
 				text_end -= 1;		// Remove bracket
 			}
 
-			return Option::Some(Token{
+			return Token{
 				class: rule.0,
 				text: (&expression[0..text_end]).to_string()
-			});
+			};
 		}
 
-		return Option::None;
+		return Token{
+			class: Type::Illegal,
+			text: expression.chars().nth(0).unwrap().to_string()
+		};
 	}
 
-	//pub fn tokenize(expression: String) -> Option<Token> {}
+	pub fn tokenize(mut expression: String) -> Vec<Token> {
+		let mut tokens = Vec::new();
+
+		while expression.len() > 0 {
+			let token_next = Token::find(&expression);
+			tokens.push(token_next.clone());
+
+			expression = (&expression[token_next.text.len()..]).to_string();
+		}
+
+		return tokens;
+	}
 }
