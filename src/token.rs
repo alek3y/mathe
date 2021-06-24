@@ -18,18 +18,18 @@ const RULES: [(Type, &str); 5] = [
 	(Type::Constant, r"([a-zA-Z]|_)+")
 ];
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Token {
 	pub class: Type,
 	pub text: String
 }
 
 impl Token {
-	pub fn find(expression: &String) -> Token {
+	pub fn find(expression: &str) -> Token {
 		for rule in RULES.iter() {
 			let regex = Regex::new(rule.1).unwrap();
 
-			let try_match = regex.find(expression.as_str());
+			let try_match = regex.find(expression);
 			if try_match.is_none() {
 				continue;
 			}
@@ -46,7 +46,7 @@ impl Token {
 
 			return Token{
 				class: rule.0,
-				text: (&expression[0..text_end]).to_string()
+				text: expression[0..text_end].to_string()
 			};
 		}
 
@@ -56,14 +56,16 @@ impl Token {
 		};
 	}
 
-	pub fn tokenize(mut expression: String) -> Vec<Token> {
+	pub fn tokenize(expression: &str) -> Vec<Token> {
 		let mut tokens = Vec::new();
 
+		let mut expression = expression.to_string();
 		while expression.len() > 0 {
-			let token_next = Token::find(&expression);
-			tokens.push(token_next.clone());
+			let token_next = Token::find(expression.as_str());
+			let token_len = token_next.text.len();
+			tokens.push(token_next);
 
-			expression = (&expression[token_next.text.len()..]).to_string();
+			expression = (&expression[token_len..]).to_string();
 		}
 
 		return tokens;
