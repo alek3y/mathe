@@ -28,7 +28,7 @@ const WEIGHTS: [(&str, u8); 6] = [
 	("^", 3)
 ];
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
 	pub class: Type,
 	pub text: String
