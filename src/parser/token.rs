@@ -14,8 +14,18 @@ const RULES: [(Type, &str); 5] = [
 	(Type::Number, r"\d+(\.\d+|)(e(\-|\+)\d+|)"),
 	(Type::Function, r"[a-zA-Z]+\("),		// Won't contain the bracket
 	(Type::Bracket, r"[\(\)]"),
-	(Type::Operator, r"[\+\-\*/\^%]"),
+	(Type::Operator, r"[\+\-\*/%\^]"),
 	(Type::Constant, r"([a-zA-Z]|_)+")
+];
+
+// TODO: This is kind of a repetition with the operators regex
+const WEIGHTS: [(&str, u8); 6] = [
+	("+", 1),
+	("-", 1),
+	("*", 2),
+	("/", 2),
+	("%", 2),
+	("^", 3)
 ];
 
 #[derive(Debug)]
@@ -25,6 +35,20 @@ pub struct Token {
 }
 
 impl Token {
+	pub fn weight(&self) -> Option<u8> {
+		if self.class != Type::Operator {
+			return Option::None;
+		}
+
+		for weight in WEIGHTS.iter() {
+			if weight.0 == self.text {
+				return Option::Some(weight.1);
+			}
+		}
+
+		return Option::None;
+	}
+
 	pub fn find(expression: &str) -> Token {
 		for rule in RULES.iter() {
 			let regex = Regex::new(rule.1).unwrap();
