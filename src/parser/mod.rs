@@ -37,10 +37,20 @@ impl Tree {
 	fn sanitize(tokens: &Vec<Token>) -> Vec<Token> {
 		let mut sanitized_tokens = Vec::new();
 
-		for token in tokens.iter() {
-			if token.class != Type::Illegal {
-				sanitized_tokens.push(token.clone());
+		for (i, token) in tokens.iter().enumerate() {
+			if token.class == Type::Illegal {
+				continue;
 			}
+
+			// Prefix negative numbers with a zero
+			if token.text == "-" && (i == 0 || tokens[i-1].text == "(") {
+				sanitized_tokens.push(Token{
+					class: Type::Number,
+					text: "0".to_string()
+				});
+			}
+
+			sanitized_tokens.push(token.clone());
 		}
 
 		return sanitized_tokens;
