@@ -51,7 +51,9 @@ impl Token {
 
 	pub fn find(expression: &str) -> Token {
 		for rule in RULES.iter() {
-			let regex = Regex::new(rule.1).unwrap();
+			let regex = Regex::new(
+				&(r"\A".to_string() + rule.1)		// Match at ^
+			).unwrap();
 
 			let try_match = regex.find(expression);
 			if try_match.is_none() {
