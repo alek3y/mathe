@@ -11,26 +11,25 @@ pub struct Tree {
 impl Tree {
 	pub fn new(tokens: &Vec<Token>) -> Box<Tree> {
 		let tokens = Tree::sanitize(tokens);
-		if tokens.len() == 1 {
-			return Box::new(Tree{
-				data: tokens[0].clone(),		// TODO: Check how this runs performance-wise
-				left: Option::None,
-				right: Option::None
-			});
+		let first_token = &tokens[0];
+
+		// Remove opening and closing brackets
+		if first_token.class == Type::Bracket {
+			return Tree::new(&tokens[1..tokens.len()-1].to_vec());
 		}
 
-		// TODO:
-		// Handle brackets and functions (shouldn't do anything
-		// for the latter)
+		let mut root_index = Tree::find_lightest_operator(&tokens);
+		if first_token.class == Type::Function {
+			root_index = 0;		// Function token as root
+		}
 
-		let root_index = Tree::find_lightest_operator(&tokens);
 		let root = tokens[root_index].clone();
 		let left = tokens[..root_index].to_vec();
 		let right = tokens[root_index+1..].to_vec();
 		return Box::new(Tree{
 			data: root,
-			left: Option::Some(Tree::new(&left)),
-			right: Option::Some(Tree::new(&right))
+			left: if left.len() > 0 {Option::Some(Tree::new(&left))} else {Option::None},
+			right: if right.len() > 0 {Option::Some(Tree::new(&right))} else {Option::None}
 		});
 	}
 
