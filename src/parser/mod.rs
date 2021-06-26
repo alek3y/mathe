@@ -3,9 +3,9 @@ use token::*;
 
 #[derive(Debug)]
 pub struct Tree {
-	data: Token,
-	left: Option<Box<Tree>>,
-	right: Option<Box<Tree>>
+	pub data: Token,
+	pub left: Option<Box<Tree>>,
+	pub right: Option<Box<Tree>>
 }
 
 impl Tree {
@@ -83,13 +83,5 @@ impl Tree {
 		}
 
 		return lightest_index;
-	}
-
-	pub fn get_left(&self) -> &Box<Tree> {
-		return &(&self.left).as_ref().unwrap();
-	}
-
-	pub fn get_right(&self) -> &Box<Tree> {
-		return &(&self.right).as_ref().unwrap();
 	}
 }
