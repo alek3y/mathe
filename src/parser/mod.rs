@@ -11,10 +11,11 @@ pub struct Tree {
 impl Tree {
 	pub fn new(tokens: &Vec<Token>) -> Box<Tree> {
 		let tokens = Tree::sanitize(tokens);
-		let first_token = &tokens[0];
+		let first_token = tokens.first().unwrap();
 
 		// Remove opening and closing brackets
-		if first_token.class == Type::Bracket {
+		if first_token.class == Type::Bracket
+			&& tokens.last().unwrap().class == Type::Bracket {
 			return Tree::new(&tokens[1..tokens.len()-1].to_vec());
 		}
 
