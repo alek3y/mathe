@@ -34,25 +34,30 @@ impl Tree {
 	}
 
 	fn sanitize(tokens: &Vec<Token>) -> Vec<Token> {
-		let mut sanitized_tokens = Vec::new();
-
-		for (i, token) in tokens.iter().enumerate() {
+		let mut legal_tokens = Vec::new();
+		for token in tokens.iter() {
 			if token.class == Type::Illegal {
 				continue;
 			}
 
+			legal_tokens.push(token.clone());
+		}
+
+		let mut adapted_tokens = Vec::new();
+		for (i, token) in legal_tokens.iter().enumerate() {
+
 			// Prefix negative numbers with a zero
-			if token.text == "-" && (i == 0 || tokens[i-1].text == "(") {
-				sanitized_tokens.push(Token{
+			if token.text == "-" && (i == 0 || legal_tokens[i-1].text == "(") {
+				adapted_tokens.push(Token{
 					class: Type::Number,
 					text: "0".to_string()
 				});
 			}
 
-			sanitized_tokens.push(token.clone());
+			adapted_tokens.push(token.clone());
 		}
 
-		return sanitized_tokens;
+		return adapted_tokens;
 	}
 
 	fn find_lightest_operator(tokens: &Vec<Token>) -> usize {
