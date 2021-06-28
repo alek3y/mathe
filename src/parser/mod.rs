@@ -14,8 +14,7 @@ impl Tree {
 		let first_token = tokens.first().unwrap();
 
 		// Remove opening and closing brackets
-		if first_token.class == Type::Bracket
-			&& tokens.last().unwrap().class == Type::Bracket {
+		if first_token.text == "(" && tokens.last().unwrap().text == ")" {
 			return Tree::new(&tokens[1..tokens.len()-1].to_vec());
 		}
 
