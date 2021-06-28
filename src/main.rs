@@ -2,14 +2,20 @@ use std::io;
 use std::io::Write;
 use mathe::evaluate;
 
-fn main() -> io::Result<()> {
+fn main() {
 	loop {
 		print!("> ");
-		io::stdout().flush()?;
+		io::stdout().flush().unwrap();
 
 		let mut expression = String::new();
-		io::stdin().read_line(&mut expression)?;
+		io::stdin().read_line(&mut expression).unwrap();
 
-		println!("{}", evaluate(&expression));
+		let result = evaluate(&expression);
+		if result.is_err() {
+			println!("{}", result.err().unwrap());
+			continue;
+		}
+
+		println!("{}", result.unwrap());
 	}
 }

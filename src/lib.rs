@@ -2,30 +2,30 @@ pub mod parser;
 use parser::*;
 use token::*;
 
-pub fn evaluate(expression: &str) -> f64 {
+pub fn evaluate(expression: &str) -> ParseResult<f64> {
 	let tokens = Token::tokenize(expression);
-	let tree = Tree::new(&tokens);
+	let tree = Tree::new(&tokens)?;
 	let mut stack = Vec::new();
-	evaluate_on_stack(&tree, &mut stack);
-	return stack.pop().unwrap();
+	evaluate_on_stack(&tree, &mut stack)?;
+	return Ok(stack.pop().unwrap());
 }
 
-fn evaluate_on_stack(tree: &Box<Tree>, stack: &mut Vec<f64>) {
+fn evaluate_on_stack(tree: &Box<Tree>, stack: &mut Vec<f64>) -> ParseResult<()> {
 	let token = &tree.data;
 
 	if tree.left.is_none() && tree.right.is_none() {
 		if token.class != Type::Number {
-			panic!();
+			return Err("invalid number");
 		}
 
 		stack.push(token.text.parse().unwrap());
-		return;
+		return Ok(());
 	}
 
 	if tree.left.is_some() {		// Will be None with functions
-		evaluate_on_stack(&tree.left.as_ref().unwrap(), stack);
+		evaluate_on_stack(tree.left.as_ref().unwrap(), stack)?;
 	}
-	evaluate_on_stack(&tree.right.as_ref().unwrap(), stack);
+	evaluate_on_stack(tree.right.as_ref().ok_or("missing subexpression")?, stack)?;
 
 	let result: f64;
 	match token.class {
@@ -34,7 +34,7 @@ fn evaluate_on_stack(tree: &Box<Tree>, stack: &mut Vec<f64>) {
 
 			match token.text.as_str() {
 				"sqrt" => result = right.sqrt(),
-				_ => panic!()
+				_ => return Err("unknown function")
 			}
 		},
 		Type::Operator => {
@@ -51,8 +51,9 @@ fn evaluate_on_stack(tree: &Box<Tree>, stack: &mut Vec<f64>) {
 				_ => panic!()
 			}
 		},
-		_ => panic!()
+		_ => return Err("unknown operator")
 	}
 
 	stack.push(result);
+	return Ok(());
 }

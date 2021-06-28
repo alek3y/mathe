@@ -1,5 +1,8 @@
 pub mod token;
 use token::*;
+use std::result;
+
+pub type ParseResult<T> = result::Result<T, &'static str>;
 
 #[derive(Debug)]
 pub struct Tree {
@@ -9,16 +12,20 @@ pub struct Tree {
 }
 
 impl Tree {
-	pub fn new(tokens: &Vec<Token>) -> Box<Tree> {
+	pub fn new(tokens: &Vec<Token>) -> ParseResult<Box<Tree>> {
 		let tokens = Tree::sanitize(tokens);
-		let first_token = tokens.first().unwrap();
+		let first_token = tokens.first().ok_or("empty expression")?;
 
 		// Remove opening and closing brackets
 		if first_token.text == "(" && tokens.last().unwrap().text == ")" {
+			if tokens.len() < 2 {
+				return Err("malformed expression");
+			}
+
 			return Tree::new(&tokens[1..tokens.len()-1].to_vec());
 		}
 
-		let mut root_index = Tree::find_lightest_operator(&tokens);
+		let mut root_index = Tree::find_lightest_operator(&tokens)?;
 		if first_token.class == Type::Function {
 			root_index = 0;		// Function token as root
 		}
@@ -26,11 +33,11 @@ impl Tree {
 		let root = tokens[root_index].clone();
 		let left = tokens[..root_index].to_vec();
 		let right = tokens[root_index+1..].to_vec();
-		return Box::new(Tree{
+		return Ok(Box::new(Tree{
 			data: root,
-			left: if left.len() > 0 {Option::Some(Tree::new(&left))} else {Option::None},
-			right: if right.len() > 0 {Option::Some(Tree::new(&right))} else {Option::None}
-		});
+			left: if left.len() > 0 {Option::Some(Tree::new(&left)?)} else {Option::None},
+			right: if right.len() > 0 {Option::Some(Tree::new(&right)?)} else {Option::None}
+		}));
 	}
 
 	fn sanitize(tokens: &Vec<Token>) -> Vec<Token> {
@@ -60,7 +67,7 @@ impl Tree {
 		return adapted_tokens;
 	}
 
-	fn find_lightest_operator(tokens: &Vec<Token>) -> usize {
+	fn find_lightest_operator(tokens: &Vec<Token>) -> ParseResult<usize> {
 		let mut lightest_index = 0usize;
 		let mut lightest_weight = 0u8;
 
@@ -70,7 +77,13 @@ impl Tree {
 			if token.class == Type::Bracket {
 				match token.text.as_str() {
 					"(" => parenthesis += 1,
-					")" => parenthesis -= 1,
+					")" => {
+						if parenthesis == 0 {
+							return Err("mismatched brackets");
+						}
+
+						parenthesis -= 1;
+					},
 					_ => panic!()
 				}
 			} else if token.class == Type::Function {
@@ -97,6 +110,6 @@ impl Tree {
 			}
 		}
 
-		return lightest_index;
+		return Ok(lightest_index);
 	}
 }
